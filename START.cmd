@@ -3,10 +3,16 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 set "APP_DIR=%CD%"
 set "EXIT_CODE=0"
+set "LAN_MODE=0"
+if /i "%~1"=="lan" set "LAN_MODE=1"
 
 echo.
 echo  ============================================
-echo   AI RADAR - lokalni start
+if "%LAN_MODE%"=="1" (
+  echo   AI RADAR - start pro sit ^(LAN / telefon^)
+) else (
+  echo   AI RADAR - lokalni start
+)
 echo  ============================================
 echo   Slozka: %APP_DIR%
 echo.
@@ -41,10 +47,20 @@ if not exist ".next\BUILD_ID" (
 )
 
 echo.
-echo  Spoustim AI Radar na http://127.0.0.1:3000
+if "%LAN_MODE%"=="1" (
+  echo  Spoustim AI Radar na vsech rozhranich ^(port 3000^).
+  echo  Telefon otevre http://IP-POCITACE:3000 - IP zjistis prikazem ipconfig.
+  echo  Adresu je nutne mit v AI_RADAR_ALLOWED_HOSTS v .env.local, jinak tlacitka vrati 403.
+) else (
+  echo  Spoustim AI Radar na http://127.0.0.1:3000
+)
 echo  Ukonceni: Ctrl+C
 echo.
-call npm run start
+if "%LAN_MODE%"=="1" (
+  call npm run start:lan
+) else (
+  call npm run start
+)
 set "EXIT_CODE=%ERRORLEVEL%"
 if not "%EXIT_CODE%"=="0" goto :fail
 endlocal & exit /b 0

@@ -14,6 +14,7 @@ function request(method: string, host: string, token?: string): Request {
 
 afterEach(() => {
   delete process.env.AI_RADAR_ACCESS_TOKEN;
+  delete process.env.AI_RADAR_ALLOWED_HOSTS;
 });
 
 describe("guardMutation", () => {
@@ -44,5 +45,47 @@ describe("guardMutation", () => {
 
     const allowed = guardMutation(request("POST", "radar.example.com", "tajny-token"));
     assert.equal(allowed.ok, true);
+  });
+});
+
+describe("guardMutation a AI_RADAR_ALLOWED_HOSTS", () => {
+  it("povolí hostitele ze seznamu, i s portem a velkými písmeny", () => {
+    process.env.AI_RADAR_ALLOWED_HOSTS = "192.168.3.241, NEMESIS";
+    assert.equal(guardMutation(request("POST", "192.168.3.241:3000")).ok, true);
+    assert.equal(guardMutation(request("POST", "nemesis:3000")).ok, true);
+  });
+
+  it("sníží hostitele zadaného jako URL nebo s portem", () => {
+    process.env.AI_RADAR_ALLOWED_HOSTS = "https://radar.local:8443/, https://100.86.138.22";
+    assert.equal(guardMutation(request("POST", "radar.local:8443")).ok, true);
+    assert.equal(guardMutation(request("POST", "100.86.138.22:3000")).ok, true);
+  });
+
+  it("zvládne IPv6 v hranatých závorkách i bez nich", () => {
+    process.env.AI_RADAR_ALLOWED_HOSTS = "fd7a:115c:a1e0::d035:8a17";
+    assert.equal(guardMutation(request("POST", "[fd7a:115c:a1e0::d035:8a17]:3000")).ok, true);
+    assert.equal(guardMutation(request("POST", "fd7a:115c:a1e0::d035:8a17")).ok, true);
+  });
+
+  it("hostitele mimo seznam dál odmítne", () => {
+    process.env.AI_RADAR_ALLOWED_HOSTS = "192.168.3.241";
+    const result = guardMutation(request("POST", "radar.example.com"));
+    assert.equal(result.ok, false);
+    assert.equal(result.ok === false ? result.status : 0, 403);
+    assert.match(result.ok === false ? result.message : "", /AI_RADAR_ALLOWED_HOSTS/);
+    assert.match(result.ok === false ? result.message : "", /radar\.example\.com/);
+  });
+
+  it("nepustí allowlistem obcházet nastavený token", () => {
+    process.env.AI_RADAR_ACCESS_TOKEN = "tajny-token";
+    process.env.AI_RADAR_ALLOWED_HOSTS = "192.168.3.241";
+    const result = guardMutation(request("POST", "192.168.3.241:3000"));
+    assert.equal(result.ok, false);
+    assert.equal(result.ok === false ? result.status : 0, 401);
+  });
+
+  it("prázdný seznam nic nepovolí", () => {
+    process.env.AI_RADAR_ALLOWED_HOSTS = "   ,  ";
+    assert.equal(guardMutation(request("POST", "192.168.3.241:3000")).ok, false);
   });
 });

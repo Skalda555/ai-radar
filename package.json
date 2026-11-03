@@ -10,6 +10,7 @@
     "dev": "next dev -H 127.0.0.1 -p 3000",
     "build": "next build",
     "start": "next start -H 127.0.0.1 -p 3000",
+    "start:lan": "next start -H 0.0.0.0 -p 3000",
     "typecheck": "tsc --noEmit",
     "build:lib": "tsc -p tsconfig.build.json",
     "test": "npm run build:lib && node --test --test-isolation=none --test-reporter=spec \".build/tests/*.test.js\"",

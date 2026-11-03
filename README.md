@@ -42,7 +42,29 @@ npm run dev        # vývojový server s HMR
 # nebo
 npm run build
 npm run start      # produkční server na http://127.0.0.1:3000
+npm run start:lan  # naslouchá na všech rozhraních (přístup z LAN/telefonu)
 ```
+
+### Přístup z LAN nebo telefonu
+
+Server ve výchozím stavu poslouchá jen na `127.0.0.1`, takže se z jiného zařízení vůbec
+nepřipojíš. Pro přístup z LAN:
+
+1. Spusť `npm run start:lan` (nebo `START.cmd lan`) — server poslouchá na `0.0.0.0:3000`.
+2. Doplň do `.env.local` adresu, na které aplikaci otevíráš:
+
+   ```dotenv
+   AI_RADAR_ALLOWED_HOSTS=192.168.3.241,100.86.138.22
+   ```
+
+   Bez toho se stránky načtou, ale každé tlačítko vrátí 403: prohlížeč neumí poslat
+   `x-ai-radar-token`, takže měnící endpointy pouští jen hostitele z tohoto seznamu.
+3. Na telefonu otevři `http://<IP-počítače>:3000` (IP zjistíš přes `ipconfig`).
+
+Co to znamená bezpečnostně: kdokoli na stejné síti (nebo v tvém tailnetu) může měnit data.
+Pro vzdálený přístup mimo domov je proto lepší Tailscale než veřejné IP a port forwarding;
+pro veřejnou doménu zůstává správná cesta reverzní proxy s tokenem (viz [docs/SYNOLOGY.md](docs/SYNOLOGY.md)).
+Windows se při prvním startu může zeptat firewallu — povol přístup jen pro privátní sítě.
 
 ## 3. Konfigurace `.env.local`
 
@@ -62,7 +84,8 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 | `GOOGLE_TRANSLATE_API_KEY` | Překlad názvů videí přes Google Cloud Translation v2 | ne |
 | `GEMINI_MODEL` | Model, výchozí `gemini-3.5-flash-lite` | ne |
 | `AI_RADAR_DB_PATH` | Jiná cesta k SQLite (výchozí `data/ai-radar.db`) | ne |
-| `AI_RADAR_ACCESS_TOKEN` | Ochrana měnících endpointů, pokud aplikace neběží na localhostu | ne |
+| `AI_RADAR_ACCESS_TOKEN` | Vyžaduje hlavičku `x-ai-radar-token` u všech mutací (pro reverzní proxy) | ne |
+| `AI_RADAR_ALLOWED_HOSTS` | Hostitelé (IP/názvy), kteří smí měnit data i bez tokenu — pro LAN a Tailscale | ne |
 
 **Aplikace je plně použitelná i bez jediného klíče:** RSS synchronizace, filtry, ukládání,
 import i export kanálů, knihovna i export fungují. Bez `YOUTUBE_API_KEY` vkládej rovnou Channel ID
@@ -227,7 +250,9 @@ docker compose up -d
 - Klíče pouze server-side; nikdy v klientském bundlu, DB ani logu. Chybové zprávy klíč redagují.
 - Všechny externí požadavky jdou přes allowlist hostitelů, HTTPS, timeout a limit velikosti;
   přesměrování se validují.
-- Měnící endpointy (`POST`) jsou povolené jen z localhostu, nebo vyžadují `x-ai-radar-token`.
+- Měnící endpointy (`POST`) jsou povolené jen z localhostu, z hostitele v
+  `AI_RADAR_ALLOWED_HOSTS`, nebo s hlavičkou `x-ai-radar-token`. Kontroluje se hlavička `Host`,
+  kterou cizí web u požadavku na tento server nesfalšuje.
 - Externí obsah (video, popis, titulky) je **nedůvěryhodný vstup**. Prompt výslovně zakazuje
   řídit se instrukcemi z videa; aplikace externí text nikdy nevykonává.
 - Analytický endpoint přijímá jen video ID existující v databázi.

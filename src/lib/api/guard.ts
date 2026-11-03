@@ -2,18 +2,40 @@ import { getConfig } from "../config";
 
 export type GuardResult = { ok: true } | { ok: false; status: number; message: string };
 
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"]);
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
+
+/**
+ * Host header values arrive with a port, brackets around IPv6, and sometimes a
+ * user pasted a whole URL into the allowlist. Compare only the hostname.
+ */
+function normalizeHostname(value: string): string {
+  let host = value.trim().toLowerCase();
+  if (!host) return "";
+  host = host.replace(/^[a-z][a-z0-9+.-]*:\/\//, "").replace(/\/.*$/, "");
+  if (host.startsWith("[")) {
+    const end = host.indexOf("]");
+    return end > 0 ? host.slice(1, end) : host.replace(/^\[|\]$/g, "");
+  }
+  // "host:port" only when the tail is numeric, so a bare IPv6 address survives.
+  const withPort = /^([^:]+):(\d+)$/.exec(host);
+  return withPort ? withPort[1] : host;
+}
 
 /**
  * Mutating endpoints are local-only unless an access token is configured.
  * This keeps a personal tool from becoming an unauthenticated public API when
  * someone later exposes it by accident.
+ *
+ * Browsers cannot send `x-ai-radar-token` on their own, so a LAN or tunnel host
+ * that the owner trusts can be listed in `AI_RADAR_ALLOWED_HOSTS` instead.
+ * That list is compared against the Host header, which a hostile website cannot
+ * forge for a request aimed at this server.
  */
 export function guardMutation(request: Request): GuardResult {
   const method = request.method.toUpperCase();
   if (method === "GET" || method === "HEAD" || method === "OPTIONS") return { ok: true };
 
-  const { accessToken } = getConfig();
+  const { accessToken, allowedHosts } = getConfig();
   if (accessToken) {
     const provided = request.headers.get("x-ai-radar-token") ?? "";
     if (!timingSafeEqual(provided, accessToken)) {
@@ -26,15 +48,19 @@ export function guardMutation(request: Request): GuardResult {
     return { ok: true };
   }
 
-  const host = (request.headers.get("host") ?? "").toLowerCase();
-  const hostname = host.startsWith("[") ? host.slice(1, host.indexOf("]")) : host.split(":")[0];
+  const hostname = normalizeHostname(request.headers.get("host") ?? "");
   if (LOCAL_HOSTS.has(hostname)) return { ok: true };
+  if (hostname && allowedHosts.some((entry) => normalizeHostname(entry) === hostname)) {
+    return { ok: true };
+  }
 
   return {
     ok: false,
     status: 403,
     message:
-      "Aplikace běží na ne-lokální adrese. Měnící endpointy vyžadují AI_RADAR_ACCESS_TOKEN a hlavičku x-ai-radar-token.",
+      `Aplikace běží na ne-lokální adrese (Host: ${hostname || "neznámý"}). ` +
+      "Měnící endpointy vyžadují AI_RADAR_ACCESS_TOKEN a hlavičku x-ai-radar-token, " +
+      "nebo hostitele uvedeného v AI_RADAR_ALLOWED_HOSTS.",
   };
 }
 

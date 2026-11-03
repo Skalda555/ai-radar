@@ -4,6 +4,7 @@ export type AppConfig = {
   googleTranslateApiKey: string | null;
   geminiModel: string;
   accessToken: string | null;
+  allowedHosts: string[];
   dbPath: string | null;
 };
 
@@ -17,6 +18,7 @@ export function getConfig(): AppConfig {
     googleTranslateApiKey: envValue("GOOGLE_TRANSLATE_API_KEY"),
     geminiModel: envValue("GEMINI_MODEL") ?? DEFAULT_GEMINI_MODEL,
     accessToken: envValue("AI_RADAR_ACCESS_TOKEN"),
+    allowedHosts: envList("AI_RADAR_ALLOWED_HOSTS"),
     dbPath: envValue("AI_RADAR_DB_PATH"),
   };
 }
@@ -26,6 +28,16 @@ function envValue(name: string): string | null {
   if (typeof raw !== "string") return null;
   const trimmed = raw.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+/** Comma, semicolon or whitespace separated list; empty entries are dropped. */
+function envList(name: string): string[] {
+  const raw = process.env[name];
+  if (typeof raw !== "string") return [];
+  return raw
+    .split(/[,;\s]+/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
 export function hasYouTubeKey(): boolean {

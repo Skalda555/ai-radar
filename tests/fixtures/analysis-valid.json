@@ -1,0 +1,123 @@
+{
+  "title_original": "Codex Skills in practice: build a custom MCP workflow",
+  "title_cs": "Codex Skills v praxi: vlastní MCP workflow",
+  "summary_short_cs": "Ukázka toho, jak autor staví vlastní Codex Skill, který přes MCP server čte firemní dokumentaci, a jak ho testuje na reálném repozitáři.",
+  "summary_long_cs": "Video provází tvorbou Codex Skillu od prázdné šablony po funkční nástroj. Autor nejdřív vysvětluje, k čemu Skills slouží a jak se liší od prostého promptu: Skill je uložený soubor instrukcí a pomocných skriptů, který agent načte až ve chvíli, kdy ho potřebuje.\n\nVe druhé části připojí MCP server s dokumentací a předvede, jak ověřit, že agent nástroj skutečně volá. Na závěr ukáže test, který na malém repozitáři ověří, že Skill vrací očekávaný výstup, a upozorní, že bez testu se chyby projeví až v produkci.",
+  "main_topic": "Vlastní Codex Skill napojený na MCP server",
+  "category": "Skills a MCP",
+  "constraints_cs": "Postup vyžaduje Node.js 20+ a přístup k MCP serveru. Autor upozorňuje, že Skills nejsou náhradou testů a že síťové nástroje je potřeba omezit oprávněními.",
+  "insufficient_content": false,
+  "insufficiency_reason_cs": null,
+  "relevance": {
+    "score": 92,
+    "explanation_cs": "Přesně cílí na Skills, MCP a Codex, tedy hlavní témata profilu. Ukazuje konkrétní postup a testování, ne jen obecné rady."
+  },
+  "key_points": [
+    {
+      "text_cs": "Skill je uložený soubor instrukcí, který agent načte až při potřebě, takže nezaplňuje kontext celého sezení.",
+      "timestamp_seconds": 184,
+      "evidence_quote": "A skill is just a folder with instructions the agent loads when it decides it needs it.",
+      "evidence_kind": "TRANSCRIPT_QUOTE",
+      "confidence": "HIGH"
+    },
+    {
+      "text_cs": "MCP server lze připojit k Skills a ověřit volání nástroje v logu, místo aby se spoléhalo na dojem z odpovědi.",
+      "timestamp_seconds": 402,
+      "evidence_quote": null,
+      "evidence_kind": "NARRATION",
+      "confidence": "MEDIUM"
+    },
+    {
+      "text_cs": "Autorův testovací repozitář obsahuje tři malé soubory, na kterých ověří, že Skill vrací očekávaný výstup.",
+      "timestamp_seconds": 655,
+      "evidence_quote": "I keep three tiny files in the repo just to test this skill.",
+      "evidence_kind": "VISUAL",
+      "confidence": "MEDIUM"
+    }
+  ],
+  "tips": [
+    {
+      "text_cs": "Začni prázdnou šablonou Skillu a přidávej jen instrukce, které jsi skutečně potřeboval.",
+      "benefit_cs": "Menší Skill se snáz udržuje a agent ho méně často načítá zbytečně.",
+      "timestamp_seconds": 240
+    },
+    {
+      "text_cs": "Ověř volání MCP nástroje v logu, ne podle toho, jak se odpověď tváří.",
+      "benefit_cs": "Odhalíš případ, kdy agent nástroj vůbec nezavolal a odpověď si vymyslel.",
+      "timestamp_seconds": 410
+    }
+  ],
+  "workflows": [
+    {
+      "name": "Vytvoření a ověření Codex Skillu s MCP",
+      "purpose_cs": "Postavit Skill, který přes MCP server čte dokumentaci, a ověřit jeho chování testem.",
+      "prerequisites_cs": ["Node.js 20+", "Přístup k Codex", "MCP server s dokumentací"],
+      "tools": ["Codex", "MCP server", "Node.js"],
+      "steps": [
+        {
+          "text_cs": "Vytvoř složku Skillu a do souboru s instrukcemi napiš, kdy se má Skill použít.",
+          "command": "mkdir -p ~/.codex/skills/docs-reader",
+          "timestamp_seconds": 132
+        },
+        {
+          "text_cs": "Připoj MCP server a ověř, že se nástroj objevil v seznamu dostupných nástrojů.",
+          "command": null,
+          "timestamp_seconds": 298
+        },
+        {
+          "text_cs": "Spusť testovací repozitář a porovnej výstup s očekáváním.",
+          "command": "node test-skill.mjs",
+          "timestamp_seconds": 640
+        }
+      ],
+      "risks_cs": ["Agent může nástroj volat i tam, kde to není potřeba.", "Bez omezení oprávnění může MCP server sahat na data, která nechceš."],
+      "timestamp_seconds": 120
+    }
+  ],
+  "tools": [
+    {
+      "name": "Codex",
+      "url": "https://openai.com/codex",
+      "demonstrated": true,
+      "note_cs": "Autor v něm celý Skill staví."
+    },
+    {
+      "name": "MCP",
+      "url": "https://modelcontextprotocol.io",
+      "demonstrated": true,
+      "note_cs": "Připojení serveru a ověření volání nástroje."
+    },
+    {
+      "name": "Node.js",
+      "url": "https://nodejs.org",
+      "demonstrated": false,
+      "note_cs": "Zmíněno jen jako předpoklad."
+    }
+  ],
+  "prompts": [
+    {
+      "text": "Create a skill that reads our internal docs through the MCP server and answers questions with citations.",
+      "kind": "EXACT_QUOTE",
+      "command_type": "PROMPT",
+      "timestamp_seconds": 96,
+      "note_cs": "Autor ho diktoval při zakládání Skillu."
+    },
+    {
+      "text": "Ověř v logu, že agent zavolal MCP nástroj.",
+      "kind": "PARAPHRASE",
+      "command_type": "PROMPT",
+      "timestamp_seconds": 402,
+      "note_cs": "Volně převyprávěná rada, ne doslovný příkaz."
+    }
+  ],
+  "interpretation": {
+    "use_cases": [
+      {
+        "text_cs": "Stejný vzor použij pro vlastní projekt: Skill, který čte dokumentaci repozitáře přes MCP a vrací odpovědi s odkazy na soubory."
+      },
+      {
+        "text_cs": "Přidej do Skillu testovací scénář, který ověří, že agent nástroj skutečně použil. Ušetříš ladění naslepo."
+      }
+    ]
+  }
+}

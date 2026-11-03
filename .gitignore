@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+.build/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# production
+build/
+dist/
+
+# runtime data (real SQLite database + backups)
+data/
+backups/
+
+# local caches used by the sandboxed agent environment
+.npm-cache/
+.chrome-profile/
+
+# env files - never commit real keys
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs & temp
+*.log
+npm-debug.log*
+.screenshots/
+
+# headless browser profiles created during local verification
+.chrome-profile*
+

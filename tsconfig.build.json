@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".build",
+    "rootDir": ".",
+    "module": "commonjs",
+    "moduleResolution": "node10",
+    "incremental": false,
+    "plugins": [],
+    "types": ["node"],
+    "sourceMap": false,
+    "declaration": false,
+    "isolatedModules": false
+  },
+  "include": ["src/lib/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", ".next", ".build"]
+}

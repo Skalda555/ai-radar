@@ -1,0 +1,27 @@
+# AI Radar - local / Synology deployment
+# Secrets are injected at runtime from .env.local; nothing is baked into the image.
+services:
+  ai-radar:
+    build: .
+    container_name: ai-radar
+    restart: unless-stopped
+    ports:
+      # Bind to localhost only by default. Change to "3000:3000" only with access control.
+      - "127.0.0.1:3000:3000"
+    environment:
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+      - AI_RADAR_DB_PATH=/data/ai-radar.db
+      # Optional: require this token on every mutating request when not on localhost.
+      # - AI_RADAR_ACCESS_TOKEN=change-me
+    env_file:
+      - .env.local
+    volumes:
+      # Persistent data: SQLite database + verified backups.
+      - ./data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

@@ -1,0 +1,6 @@
+channel_id,handle,url,name,category,priority,language,description,relevance_score
+UCXUPKJO5MZQN11PqgIvyuvQ,@karpathy,https://www.youtube.com/@karpathy,Andrej Karpathy,AI modely,1,en,AI a LLM vzdělávání,95
+,UCNJ1Ymd5yFuUPtn21xtRbbw,https://www.youtube.com/channel/UCNJ1Ymd5yFuUPtn21xtRbbw,AI Explained,AI modely,1,en,Novinky o AI modelech,92
+,@ColeMedin,,Cole Medin,Vibe coding,1,en,AI agenti a vibe coding,
+,,,Neplatný řádek bez identifikátoru,,3,cs,Tohle se má odmítnout,
+UCSHZKyawb77ixDdsGog4iWA,,,Lex Fridman,AI podcasty,2,en,Dlouhé rozhovory o AI,80

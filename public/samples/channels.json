@@ -1,0 +1,29 @@
+{
+  "channels": [
+    {
+      "channel_id": "UCXUPKJO5MZQN11PqgIvyuvQ",
+      "handle": "@karpathy",
+      "name": "Andrej Karpathy",
+      "category": "AI modely",
+      "priority": 1,
+      "language": "en",
+      "description": "AI a LLM vzdělávání",
+      "relevance_score": 95
+    },
+    {
+      "handle": "@ColeMedin",
+      "name": "Cole Medin",
+      "category": "Vibe coding",
+      "priority": 1,
+      "language": "en"
+    },
+    {
+      "url": "https://www.youtube.com/channel/UCSHZKyawb77ixDdsGog4iWA",
+      "name": "Lex Fridman",
+      "category": "AI podcasty",
+      "priority": 2,
+      "language": "en",
+      "relevance_score": 80
+    }
+  ]
+}

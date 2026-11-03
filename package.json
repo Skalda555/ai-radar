@@ -1,0 +1,35 @@
+{
+  "name": "ai-radar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Radar - osobni inteligentni YouTube news & knowledge hub",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "next dev -H 127.0.0.1 -p 3000",
+    "build": "next build",
+    "start": "next start -H 127.0.0.1 -p 3000",
+    "typecheck": "tsc --noEmit",
+    "build:lib": "tsc -p tsconfig.build.json",
+    "test": "npm run build:lib && node --test --test-isolation=none --test-reporter=spec \".build/tests/*.test.js\"",
+    "smoke": "node scripts/http-smoke.mjs",
+    "sync": "npm run build:lib && node .build/scripts/sync-rss.js",
+    "db:check": "npm run build:lib && node .build/scripts/db-check.js",
+    "db:backup": "npm run build:lib && node .build/scripts/backup-db.js"
+  },
+  "dependencies": {
+    "next": "^16.4.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.4",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tailwindcss": "^4.3.4",
+    "typescript": "^5.9.3"
+  }
+}

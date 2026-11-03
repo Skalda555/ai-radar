@@ -187,6 +187,28 @@ if (item) {
   });
 }
 
+await check("GET export kanálů (csv + json)", async () => {
+  const csv = await get("/api/export/channels?format=csv");
+  assert(csv.status === 200, `csv HTTP ${csv.status}`);
+  assert(
+    String(csv.headers.get("content-disposition")).includes("ai-radar-kanaly.csv"),
+    "chybí hlavička pro stažení CSV",
+  );
+  const lines = csv.text.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+  assert(
+    lines[0] === "channel_id,handle,url,name,category,priority,language,description,relevance_score",
+    "hlavička CSV neodpovídá importu",
+  );
+  assert(lines.length > 1, "CSV neobsahuje žádný kanál");
+
+  const json = await get("/api/export/channels?format=json");
+  assert(json.status === 200, `json HTTP ${json.status}`);
+  const payload = JSON.parse(json.text);
+  assert(Array.isArray(payload.channels), "json bez pole channels");
+  assert(payload.count === payload.channels.length, "count nesouhlasí s polem channels");
+  return `${payload.count} kanálů`;
+});
+
 await check("POST /api/settings → roundtrip", async () => {
   const before = await get("/api/settings");
   const current = JSON.parse(before.text).preferences;

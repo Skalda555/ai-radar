@@ -65,7 +65,7 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 | `AI_RADAR_ACCESS_TOKEN` | Ochrana měnících endpointů, pokud aplikace neběží na localhostu | ne |
 
 **Aplikace je plně použitelná i bez jediného klíče:** RSS synchronizace, filtry, ukládání,
-import, knihovna i export fungují. Bez `YOUTUBE_API_KEY` vkládej rovnou Channel ID
+import i export kanálů, knihovna i export fungují. Bez `YOUTUBE_API_KEY` vkládej rovnou Channel ID
 (`UC…` + 22 znaků), bez `GEMINI_API_KEY` se analýza neodešle.
 
 ### Získání YouTube API klíče
@@ -160,6 +160,10 @@ hodnotami. Demo režim byl odstraněn; aplikace pracuje jen s reálnými daty z 
   (soubor `…-pre-delete-channel.db`). Smazání kanálu v UI je nevratné: odstraní kanál,
   jeho videa, analýzy, poznatky, dotazy i uložené položky, a proto chce výslovné potvrzení.
 - Ruční záloha: tlačítko v Nastavení nebo `npm run db:backup`.
+- Seznam kanálů jde kdykoli vyexportovat z `/kanaly` jako CSV nebo JSON
+  (`/api/export/channels?format=csv|json`). Formát je shodný s importem, takže soubor lze
+  naimportovat zpět nebo do jiné instance. Export respektuje aktivní hledání (`q`) a stav
+  (`active=1|0`); pozastavené kanály se exportují také, ale import je vrací jako aktivní.
 - Kontrola: `npm run db:check` (integrita, cizí klíče, počty, verze schématu).
 - Migrace nikdy nemažou videa, analýzy ani nastavení.
 - Testy používají výhradně izolované in-memory databáze.
@@ -205,7 +209,7 @@ npm run sync -- --channel UCxxxx      # jeden kanál
 Frekvenci lze uložit v Nastavení (3/6/12/24 h) — je to jen preference pro plánovač;
 aplikace sama na pozadí nic nespouští. Automatická AI analýza se nikdy nespouští.
 
-## 9. Docker (budoucí Synology NAS)
+## 9. Docker a Synology NAS
 
 ```bash
 docker compose build
@@ -214,9 +218,9 @@ docker compose up -d
 
 - Image neobsahuje `.env.local`, klíče ani produkční SQLite.
 - Data jsou na volume `./data:/data` (`AI_RADAR_DB_PATH=/data/ai-radar.db`).
-- Port je vázaný na `127.0.0.1`. Při zpřístupnění v LAN nastav `AI_RADAR_ACCESS_TOKEN`
-  a použij reverzní proxy s HTTPS.
-- Nasazení na Synology **není** součástí tohoto dodání a nebylo provedeno.
+- Port je vázaný na `127.0.0.1`; pro vzdálený přístup použij HTTPS reverzní proxy.
+- Postup pro Synology Container Manager, proxy a ochranu tokenem je v [docs/SYNOLOGY.md](docs/SYNOLOGY.md).
+- Nasazení na konkrétní NAS je nutné provést samostatně; tento repozitář neobsahuje přístupové údaje k zařízení.
 
 ## 10. Bezpečnost
 
@@ -272,7 +276,7 @@ src/lib/
   analysis/              normalizace a uložení analýzy
   relevance/             odhad relevance z metadat
   import/                CSV/JSON parse, preview, commit
-  export/                Markdown a JSON export
+  export/                Markdown, JSON a CSV (analýza, poznatky, kanály)
   queries/               čtecí dotazy pro stránky
   api/                   guard měnících endpointů
 scripts/                 sync-rss, db-check, db-backup, http-smoke

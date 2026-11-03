@@ -8,12 +8,13 @@ import { ChannelToggle } from "@/components/channels/ChannelToggle";
 import { ImportDialog } from "@/components/channels/ImportDialog";
 import { DeleteChannelButton } from "@/components/channels/DeleteChannelButton";
 import { CategoryEditor } from "@/components/channels/CategoryEditor";
+import { ExportChannelsLinks } from "@/components/channels/ExportChannelsLinks";
 import { getDb } from "@/lib/db/client";
 import { countChannels, listChannels } from "@/lib/channels/service";
+import { filterChannels, hasSearchTokens } from "@/lib/channels/filter";
 import { lastSyncRun } from "@/lib/youtube/sync";
 import { getConfig } from "@/lib/config";
 import { formatDateTimeCs, relativeTimeCs } from "@/lib/shared/time";
-import { fold } from "@/lib/shared/text";
 import { statusClass } from "@/lib/ui/labels";
 
 export const dynamic = "force-dynamic";
@@ -35,16 +36,8 @@ export default async function ChannelsPage({
   const query = one(sp.q).trim();
   const db = getDb();
   const allChannels = listChannels(db);
-  const tokens = fold(query).split(" ").filter((token) => token.length >= 2);
-  const channels =
-    tokens.length === 0
-      ? allChannels
-      : allChannels.filter((channel) => {
-          const haystack = fold(
-            [channel.title, channel.channel_id, channel.handle ?? "", channel.category ?? ""].join(" "),
-          );
-          return tokens.every((token) => haystack.includes(token));
-        });
+  const filtering = hasSearchTokens(query);
+  const channels = filterChannels(allChannels, query);
   const counts = countChannels(db);
   const run = lastSyncRun(db);
   const categories = listCategories(db);
@@ -64,6 +57,7 @@ export default async function ChannelsPage({
         <div style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
           <SyncButton />
           <ImportDialog />
+          <ExportChannelsLinks query={query} count={channels.length} />
         </div>
       </header>
 
@@ -98,7 +92,7 @@ export default async function ChannelsPage({
       <div className="section-head">
         <h2>
           <Icon name="channels" size={18} /> Kanály ({channels.length})
-          {tokens.length > 0 ? <span className="muted" style={{ fontWeight: 400 }}> z {allChannels.length}</span> : null}
+          {filtering ? <span className="muted" style={{ fontWeight: 400 }}> z {allChannels.length}</span> : null}
         </h2>
         <span className="tiny muted">{counts.active} aktivních</span>
       </div>
@@ -120,22 +114,27 @@ export default async function ChannelsPage({
         <button type="submit" className="btn btn-primary" style={{ minHeight: 44 }}>
           Hledat
         </button>
-        {tokens.length > 0 ? (
+        {filtering ? (
           <Link href="/kanaly" className="btn btn-sm btn-ghost">
             Zrušit
           </Link>
         ) : null}
       </form>
 
+      <p className="tiny muted" style={{ margin: "0 0 14px" }}>
+        Export stáhne právě zobrazené kanály — s aktivním hledáním jen ty, které odpovídají.
+        Formát CSV i JSON je stejný jako u importu, takže soubor jde zase naimportovat.
+      </p>
+
       {channels.length === 0 ? (
         <div className="empty">
-          <h3>{tokens.length > 0 ? "Žádný kanál neodpovídá hledání" : "Zatím žádné kanály"}</h3>
+          <h3>{filtering ? "Žádný kanál neodpovídá hledání" : "Zatím žádné kanály"}</h3>
           <p>
-            {tokens.length > 0
+            {filtering
               ? "Zkus jiný výraz — hledá se v názvu, handle, Channel ID i kategorii."
               : "Začni vložením @handle, adresy kanálu nebo přímo Channel ID. Nebo použij import CSV/JSON."}
           </p>
-          {tokens.length > 0 ? (
+          {filtering ? (
             <Link href="/kanaly" className="btn">
               Zrušit hledání
             </Link>

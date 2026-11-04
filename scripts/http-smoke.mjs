@@ -268,6 +268,14 @@ await check("GET /kanaly → formulář s kategorií", async () => {
   return "kategorie přítomná";
 });
 
+await check("GET /kanaly → tlačítka kopírování", async () => {
+  const { status, text } = await get("/kanaly");
+  assert(status === 200, `HTTP ${status}`);
+  assert(text.includes("Kopírovat vše"), "chybí hromadné kopírování");
+  assert(text.includes("Kopírovat Channel ID"), "chybí kopírování u kanálu");
+  return "kopírování přítomné";
+});
+
 await check("GET /kanaly?q= → hledání v kanálech", async () => {
   const all = await (await fetch(BASE + "/api/channels")).json();
   const target = all.channels[0];

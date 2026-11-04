@@ -289,7 +289,7 @@ export function AnalysisTabs({
                             {step.detail_cs ? (
                               <div className="prompt-block" style={{ marginTop: 6 }}>
                                 {step.detail_cs}
-                                <CopyButton text={step.detail_cs} />
+                                <CopyButton text={step.detail_cs} className="btn btn-sm copy-btn" />
                               </div>
                             ) : null}
                             <div style={{ marginTop: 6 }}>
@@ -387,7 +387,7 @@ export function AnalysisTabs({
                       </div>
                       <div className="prompt-block">
                         {item.prompt_text ?? item.text_cs}
-                        {copyable ? <CopyButton text={item.prompt_text ?? item.text_cs} /> : null}
+                        {copyable ? <CopyButton text={item.prompt_text ?? item.text_cs} className="btn btn-sm copy-btn" /> : null}
                       </div>
                       {item.detail_cs ? (
                         <p className="tiny muted" style={{ marginTop: 6 }}>

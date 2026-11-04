@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Icon } from "@/components/ui/Icon";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { AddChannelForm } from "@/components/channels/AddChannelForm";
 import { listCategories } from "@/lib/queries/videos";
 import { SyncButton } from "@/components/channels/SyncButton";
@@ -42,6 +43,8 @@ export default async function ChannelsPage({
   const run = lastSyncRun(db);
   const categories = listCategories(db);
   const hasYoutubeKey = getConfig().youtubeApiKey !== null;
+  // Clipboard text mirrors the export: one Channel ID per line, filtered the same way.
+  const channelIds = channels.map((channel) => channel.channel_id).join("\n");
 
   return (
     <div className="page">
@@ -94,7 +97,17 @@ export default async function ChannelsPage({
           <Icon name="channels" size={18} /> Kanály ({channels.length})
           {filtering ? <span className="muted" style={{ fontWeight: 400 }}> z {allChannels.length}</span> : null}
         </h2>
-        <span className="tiny muted">{counts.active} aktivních</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span className="tiny muted">{counts.active} aktivních</span>
+          {channels.length > 0 ? (
+            <CopyButton
+              text={channelIds}
+              label="Kopírovat vše"
+              className="btn btn-sm btn-ghost"
+              title={`Zkopírovat Channel ID ${channels.length} zobrazených kanálů (jeden na řádek)`}
+            />
+          ) : null}
+        </div>
       </div>
 
       <form method="get" action="/kanaly" className="channel-search" role="search" aria-label="Hledat v kanálech">
@@ -124,6 +137,7 @@ export default async function ChannelsPage({
       <p className="tiny muted" style={{ margin: "0 0 14px" }}>
         Export stáhne právě zobrazené kanály — s aktivním hledáním jen ty, které odpovídají.
         Formát CSV i JSON je stejný jako u importu, takže soubor jde zase naimportovat.
+        Tlačítko <strong>Kopírovat vše</strong> dá do schránky Channel ID stejné sestavy, jeden na řádek.
       </p>
 
       {channels.length === 0 ? (
@@ -184,6 +198,13 @@ export default async function ChannelsPage({
                     videos={channel.video_count}
                     analyses={channel.analyzed_count}
                     saved={channel.saved_count}
+                  />
+                  <CopyButton
+                    text={channel.channel_id}
+                    iconOnly
+                    iconSize={14}
+                    className="btn btn-sm btn-ghost btn-icon"
+                    title={`Kopírovat Channel ID ${channel.channel_id}`}
                   />
                   <a
                     className="btn btn-sm btn-ghost"

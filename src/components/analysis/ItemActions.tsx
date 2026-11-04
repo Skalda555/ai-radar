@@ -4,42 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "../ui/Icon";
 
-export function CopyButton({ text, label = "Kopírovat" }: { text: string; label?: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        const area = document.createElement("textarea");
-        area.value = text;
-        document.body.appendChild(area);
-        area.select();
-        document.execCommand("copy");
-        area.remove();
-      }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  return (
-    <button type="button" className="btn btn-sm copy-btn" onClick={copy} aria-live="polite">
-      {copied ? (
-        <>
-          <Icon name="check" size={12} /> Zkopírováno
-        </>
-      ) : (
-        <>
-          <Icon name="copy" size={12} /> {label}
-        </>
-      )}
-    </button>
-  );
-}
+export { CopyButton } from "../ui/CopyButton";
 
 export function VerifyControls({
   itemId,

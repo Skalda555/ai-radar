@@ -79,6 +79,21 @@ describe("listVideos", () => {
     assert.ok(byRelevance.total >= 1);
   });
 
+  it("bez parametru řadí podle odhadu relevance, ne podle data", () => {
+    const database = setup();
+    // Starší video dostane vyšší odhad, novější nižší.
+    database.prepare(`UPDATE videos SET prelim_relevance = 90 WHERE video_id = 'bbbbbbbbbbb'`).run();
+    database.prepare(`UPDATE videos SET prelim_relevance = 10 WHERE video_id = 'aaaaaaaaaaa'`).run();
+
+    const result = listVideos(database, {});
+
+    assert.equal(result.rows[0].video_id, "bbbbbbbbbbb", "starší video s vyšším odhadem je první");
+    assert.equal(result.rows[1].video_id, "aaaaaaaaaaa");
+
+    const explicitNewest = listVideos(database, { sort: "newest" });
+    assert.equal(explicitNewest.rows[0].video_id, "aaaaaaaaaaa", "Nejnovější musí jít vybrat dál");
+  });
+
 
   it("poskytne témata pro filtr", () => {
     const database = setup();

@@ -8,7 +8,6 @@ import {
   type SortOption,
   type VideoStatusFilter,
 } from "@/lib/queries/videos";
-
 export type FilterBarProps = {
   action: string;
   channels: { channel_id: string; title: string; video_count: number }[];
@@ -197,9 +196,9 @@ export function Pagination({
   );
 }
 
-export function parseSort(value: string | undefined): SortOption {
+export function parseSort(value: string | undefined, fallback: SortOption = "newest"): SortOption {
   const found = SORT_OPTIONS.find((option) => option.value === value);
-  return found ? found.value : "newest";
+  return found ? found.value : fallback;
 }
 
 export function parseStatus(value: string | undefined): VideoStatusFilter {

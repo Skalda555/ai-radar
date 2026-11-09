@@ -5,7 +5,7 @@ import { FilterBar, Pagination, parseSort, parseStatus } from "@/components/vide
 import { getDb } from "@/lib/db/client";
 import { countUntranslatedTitles } from "@/lib/translate/titles";
 import { TranslateTitlesButton } from "@/components/videos/TranslateTitlesButton";
-import { listCategories, listTopics, listVideos } from "@/lib/queries/videos";
+import { listCategories, listTopics, listVideos, DEFAULT_SORT } from "@/lib/queries/videos";
 import { dbAll } from "@/lib/types";
 import type { Metadata } from "next";
 
@@ -30,7 +30,8 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
   const topic = one(sp.topic);
   const date = one(sp.date) || "all";
   const status = one(sp.status) || "ALL";
-  const sort = one(sp.sort) || "newest";
+  // The list opens on the relevance estimate; "Nejnovější" stays a visible option.
+  const sort = parseSort(one(sp.sort), DEFAULT_SORT);
   const minRelevance = one(sp.minRelevance);
   const page = Math.max(1, Number.parseInt(one(sp.page) || "1", 10) || 1);
 
@@ -41,7 +42,7 @@ export default async function VideosPage({ searchParams }: { searchParams: Promi
     topic: topic || undefined,
     date,
     status: parseStatus(status),
-    sort: parseSort(sort),
+    sort,
     minRelevance: Number.parseFloat(minRelevance) || 0,
     page,
     perPage: 24,

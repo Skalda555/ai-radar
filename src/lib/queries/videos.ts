@@ -16,14 +16,17 @@ export const VIDEO_STATUS_OPTIONS = [
 export type VideoStatusFilter = (typeof VIDEO_STATUS_OPTIONS)[number]["value"];
 
 export const SORT_OPTIONS = [
-  { value: "newest", label: "Nejnovější" },
   { value: "prelim", label: "Odhad relevance" },
+  { value: "newest", label: "Nejnovější" },
   { value: "analysis", label: "Relevance po analýze" },
   { value: "oldest", label: "Nejstarší" },
   { value: "channel", label: "Kanál" },
 ] as const;
 
 export type SortOption = (typeof SORT_OPTIONS)[number]["value"];
+
+/** The list opens on the metadata relevance estimate, not on the newest item. */
+export const DEFAULT_SORT: SortOption = "prelim";
 
 export const DATE_OPTIONS = [
   { value: "all", label: "Celé období" },
@@ -147,15 +150,16 @@ function orderBy(sort: SortOption | undefined): string {
   switch (sort) {
     case "oldest":
       return "ORDER BY published_at ASC";
-    case "prelim":
-      return "ORDER BY prelim_relevance IS NULL, prelim_relevance DESC, published_at DESC";
     case "analysis":
       return "ORDER BY analysis_score IS NULL, analysis_score DESC, published_at DESC";
     case "channel":
       return "ORDER BY channel_title COLLATE NOCASE ASC, published_at DESC";
     case "newest":
-    default:
       return "ORDER BY published_at DESC";
+    case "prelim":
+    default:
+      // Highest estimate first; videos without an estimate sink to the bottom.
+      return "ORDER BY prelim_relevance IS NULL, prelim_relevance DESC, published_at DESC";
   }
 }
 

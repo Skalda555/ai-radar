@@ -6,6 +6,7 @@ import { VideoPlayer } from "@/components/videos/VideoPlayer";
 import { SaveButton } from "@/components/videos/SaveButton";
 import { AnalyzeDialog } from "@/components/analysis/AnalyzeDialog";
 import { AnalysisTabs } from "@/components/analysis/AnalysisTabs";
+import { isTabId } from "@/lib/ui/tabs";
 import { JobPoller } from "@/components/analysis/JobPoller";
 import { RecoverButton } from "@/components/analysis/RecoverButton";
 import { VideoMetadata } from "@/components/videos/VideoMetadata";
@@ -32,10 +33,15 @@ export async function generateMetadata({
 
 export default async function VideoDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ videoId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { videoId } = await params;
+  const sp = await searchParams;
+  const tabParam = Array.isArray(sp.tab) ? sp.tab[0] : sp.tab;
+  const initialTab = isTabId(tabParam) ? tabParam : undefined;
   const db = getDb();
   const detail = getVideoDetail(db, videoId);
   if (!detail) notFound();
@@ -146,6 +152,7 @@ export default async function VideoDetailPage({
               questions={questions}
               model={config.geminiModel}
               geminiKey={Boolean(config.geminiApiKey)}
+              initialTab={initialTab}
             />
           ) : (
             <section className="panel" style={{ padding: 20 }}>

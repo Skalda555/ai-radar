@@ -17,11 +17,12 @@ import {
 import { formatDateTimeCs } from "@/lib/shared/time";
 import { Icon } from "../ui/Icon";
 import { CopyButton, VerifyControls } from "./ItemActions";
+import { CurateButton } from "../knowledge/CurateButton";
 import { AskQuestion, type QuestionItem } from "./AskQuestion";
 import { SummarySection } from "./SummarySection";
 import { UseCases } from "./UseCases";
 
-type TabId = "summary" | "points" | "tips" | "workflows" | "tools" | "prompts" | "sources";
+import type { TabId } from "@/lib/ui/tabs";
 
 function formatTs(seconds: number | null): string | null {
   if (seconds == null) return null;
@@ -60,6 +61,7 @@ export function AnalysisTabs({
   questions,
   model,
   geminiKey,
+  initialTab,
 }: {
   analysis: AnalysisRow;
   items: AnalysisItemRow[];
@@ -69,6 +71,7 @@ export function AnalysisTabs({
   questions: QuestionItem[];
   model: string;
   geminiKey: boolean;
+  initialTab?: TabId;
 }) {
   const groups = groupItems(items);
   const workflows = workflowSteps(items);
@@ -81,7 +84,7 @@ export function AnalysisTabs({
     { id: "prompts", label: "Prompty", count: groups.PROMPT.length },
     { id: "sources", label: "Zdroje a omezení" },
   ];
-  const [active, setActive] = useState<TabId>("summary");
+  const [active, setActive] = useState<TabId>(initialTab ?? "summary");
 
   const normalizedMeta = parseJsonSafe<{ insufficientReason?: string | null }>(
     analysis.normalized_json,
@@ -214,8 +217,17 @@ export function AnalysisTabs({
                     </details>
                   ) : null}
 
-                  <div style={{ marginTop: 10 }}>
+                  <div
+                    style={{
+                      marginTop: 10,
+                      display: "flex",
+                      gap: 6,
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                    }}
+                  >
                     <VerifyControls itemId={item.id} status={item.verification_status} />
+                    <CurateButton itemId={item.id} curated={Boolean(item.curated_at)} />
                   </div>
                 </div>
               ))
@@ -239,8 +251,9 @@ export function AnalysisTabs({
                       {item.detail_cs}
                     </p>
                   ) : null}
-                  <div style={{ marginTop: 8 }}>
+                  <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                     <TimestampLink seconds={item.timestamp_seconds} url={item.timestamp_url} />
+                    <CurateButton itemId={item.id} curated={Boolean(item.curated_at)} />
                   </div>
                 </div>
               ))

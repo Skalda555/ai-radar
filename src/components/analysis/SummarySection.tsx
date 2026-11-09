@@ -5,6 +5,96 @@ import { useRouter } from "next/navigation";
 import { Icon } from "../ui/Icon";
 import { ReadAloud } from "./ReadAloud";
 
+/**
+ * Saves one summary paragraph into the knowledge database. The paragraph becomes
+ * a curated key point, so it shows up in /znalosti and /databaze right away.
+ */
+function SavePointButton({
+  videoId,
+  text,
+  source,
+}: {
+  videoId: string;
+  text: string;
+  source: "summary" | "deep";
+}) {
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const router = useRouter();
+
+  async function save() {
+    setState("saving");
+    try {
+      const response = await fetch(`/api/videos/${encodeURIComponent(videoId)}/summary-points`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, source }),
+      });
+      const payload = (await response.json()) as { ok?: boolean; error?: string };
+      if (!response.ok || !payload.ok) throw new Error(payload.error ?? `HTTP ${response.status}`);
+      setState("saved");
+      router.refresh();
+    } catch {
+      setState("error");
+      setTimeout(() => setState("idle"), 2500);
+    }
+  }
+
+  const label =
+    state === "saving"
+      ? "Ukládám…"
+      : state === "saved"
+        ? "V databázi znalostí"
+        : state === "error"
+          ? "Uložení selhalo"
+          : "Uložit do znalostí";
+
+  return (
+    <button
+      type="button"
+      className="btn btn-sm btn-ghost"
+      onClick={save}
+      disabled={state === "saving" || state === "saved"}
+      title={
+        state === "saved"
+          ? "Odstavec je uložený v databázi znalostí"
+          : "Přidat tento odstavec do databáze znalostí"
+      }
+    >
+      <Icon name={state === "saved" ? "check" : state === "error" ? "alert" : "book"} size={13} />
+      {label}
+    </button>
+  );
+}
+
+function SummaryParagraphs({
+  videoId,
+  paragraphs,
+  source,
+  fallback,
+}: {
+  videoId: string;
+  paragraphs: string[];
+  source: "summary" | "deep";
+  fallback?: string;
+}) {
+  if (paragraphs.length === 0) {
+    return fallback ? <p>{fallback}</p> : null;
+  }
+
+  return (
+    <>
+      {paragraphs.map((paragraph, index) => (
+        <div key={index} style={{ display: "grid", gap: 4 }}>
+          <p>{paragraph}</p>
+          <div style={{ marginBottom: 12 }}>
+            <SavePointButton videoId={videoId} text={paragraph} source={source} />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function SummarySection({
   videoId,
   summaryLong,
@@ -69,20 +159,19 @@ export function SummarySection({
       </div>
 
       <div className="prose-cs" style={{ marginTop: 8 }}>
-        {paragraphs.length > 0 ? (
-          paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)
-        ) : (
-          <p>{summaryLong}</p>
-        )}
+        <SummaryParagraphs
+          videoId={videoId}
+          paragraphs={paragraphs}
+          source="summary"
+          fallback={summaryLong}
+        />
       </div>
 
       {expanded && deep ? (
         <div className="deep-summary">
           <div className="eyebrow">Podrobnější shrnutí</div>
           <div className="prose-cs" style={{ marginTop: 8 }}>
-            {deepParagraphs.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
+            <SummaryParagraphs videoId={videoId} paragraphs={deepParagraphs} source="deep" />
           </div>
           <ReadAloud text={deep} label="Přečíst podrobné shrnutí" />
         </div>
